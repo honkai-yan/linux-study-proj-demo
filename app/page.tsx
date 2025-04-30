@@ -5,13 +5,13 @@ import { SystemDetail } from "./definition/data";
 import ps from "pretty-ms";
 
 export default function Home() {
-  const timer = useRef<NodeJS.Timeout>(null);
+  // const timer = useRef<NodeJS.Timeout>(null);
   const [systemDetail, setSystemDetail] = useState<SystemDetail[]>([]);
 
   useEffect(() => {
     fetchData();
     return () => {
-      clearTimeout(timer.current as NodeJS.Timeout);
+      // clearTimeout(timer.current as NodeJS.Timeout);
     };
   }, []);
 
@@ -29,7 +29,7 @@ export default function Home() {
         }
       });
       setSystemDetail(data);
-      timer.current = setTimeout(fetchData, 1000);
+      // timer.current = setTimeout(fetchData, 1000);
     } catch (_) {}
   }
 
