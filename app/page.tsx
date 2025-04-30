@@ -21,7 +21,7 @@ export default function Home() {
       const data = (await response.json()) as SystemDetail[];
       data.map((item) => {
         if (item.name === "总内存") {
-          item.value = (item.value as number) / 1024 / 1024 + " MB";
+          item.value = Math.round((item.value as number) / 1024 / 1024) + " MB";
         } else if (item.name === "开机时间") {
           item.value = ps((item.value as number) * 1000, {
             secondsDecimalDigits: 0,
