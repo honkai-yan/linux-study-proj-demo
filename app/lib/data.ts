@@ -16,7 +16,7 @@ export async function getSystemDetail() {
       platform,
       release,
       cpuArch,
-      totalMem / 1024 / 1024 + " MB",
+      Math.round(totalMem / 1024 / 1024) + " MB",
       ps(uptime * 1000),
     ],
   ];
