@@ -9,6 +9,7 @@ export async function POST(req: NextRequest) {
   const cpuArch = os.arch();
   const totalMem = os.totalmem();
   const uptime = os.uptime();
+  const nodeVersion = process.version;
 
   const systemDetailData: SystemDetail[] = [
     { name: "主机名", value: hostname },
@@ -17,6 +18,7 @@ export async function POST(req: NextRequest) {
     { name: "CPU架构", value: cpuArch },
     { name: "总内存", value: totalMem },
     { name: "开机时间", value: uptime },
+    { name: "Node版本", value: nodeVersion },
   ];
 
   return NextResponse.json(systemDetailData);
