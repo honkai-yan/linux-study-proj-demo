@@ -1,7 +1,7 @@
 import os from "os";
 import ps from "pretty-ms";
 
-export function getSystemDetail() {
+export async function getSystemDetail() {
   const hostname = os.hostname();
   const platform = os.platform();
   const release = os.release();
