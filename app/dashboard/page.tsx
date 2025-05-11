@@ -2,8 +2,6 @@ import { getSystemDetail } from "../lib/data";
 import ps from "pretty-ms";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 
-export const dynamic = "force-dynamic";
-
 export default async function Dashboard() {
   const systemDetail = await getSystemDetail();
 
