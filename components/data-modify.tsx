@@ -52,7 +52,7 @@ export default function DataModify({ userdata, onModifyUser }: { userdata?: Test
       return;
     }
     try {
-      const res = await fetch("/database-test", {
+      const res = await fetch("/api", {
         method: "POST",
         body: JSON.stringify({
           reqType: "add",
