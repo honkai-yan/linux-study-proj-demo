@@ -20,9 +20,6 @@ export async function POST(req: NextRequest) {
     conn.on("error", () => {
       console.error("数据库连接丢失");
     });
-    conn.on("end", () => {
-      console.info("关闭数据库连接...");
-    });
 
     const body = await req.json();
     const reqType = body.reqType;
