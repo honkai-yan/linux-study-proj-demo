@@ -25,21 +25,21 @@ export async function POST(req: NextRequest) {
     const reqType = body.reqType;
     // 获取用户数据
     if (!reqType) {
-      return await queryUserData(conn);
+      return queryUserData(conn);
     }
     // 修改用户
     else if (reqType === "modify") {
       const user = body.user as TestUser;
-      return await modifyUser(conn, user);
+      return modifyUser(conn, user);
     }
     // 新增用户
     else if (reqType === "add") {
       const user = body.user as TestUser;
-      return await adduser(conn, user);
+      return adduser(conn, user);
     }
     // 删除用户
     else if (reqType === "del") {
-      return await delUser(conn, body.id);
+      return delUser(conn, body.id);
     }
   } catch (err) {
     console.error(`服务器错误：${err}`);

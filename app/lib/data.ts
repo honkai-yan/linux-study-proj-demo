@@ -53,7 +53,14 @@ export async function queryUserData(conn: mysql.Connection) {
 
 export async function modifyUser(conn: mysql.Connection, user: TestUser) {
   const { id, username, age } = user;
-  if (username.length > 255) {
+  if (username.length === 0) {
+    return NextResponse.json(
+      {
+        message: "用户名不能为空！",
+      },
+      { status: 400 }
+    );
+  } else if (username.length > 255) {
     return NextResponse.json(
       {
         message: "用户名长度不能超过255位！",
