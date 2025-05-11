@@ -25,7 +25,7 @@ export default function DatabaseTest() {
 
   async function fetchData(newWriteHostname?: string) {
     try {
-      const res = await fetch("/database-test", {
+      const res = await fetch("/api", {
         method: "POST",
         body: JSON.stringify({}),
       });

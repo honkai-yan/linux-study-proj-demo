@@ -17,7 +17,7 @@ import {
 export default function DataTable({ data, onDelUser }: { data?: DatabaseTestData; onDelUser: Function }) {
   async function handleDelUser(id: number) {
     try {
-      const res = await fetch("/database-test", {
+      const res = await fetch("/api", {
         method: "POST",
         body: JSON.stringify({
           reqType: "del",

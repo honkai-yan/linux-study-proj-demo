@@ -17,7 +17,7 @@ export default function DataModify({ userdata, onModifyUser }: { userdata?: Test
 
   async function handleModifyUser() {
     try {
-      const res = await fetch("/database-test", {
+      const res = await fetch("/api", {
         method: "POST",
         body: JSON.stringify({
           reqType: "modify",
