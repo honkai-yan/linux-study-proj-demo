@@ -24,12 +24,12 @@ export default function DataModify({ userdata, onModifyUser }: { userdata?: Test
           user: selectedUser,
         }),
       });
+      const data = await res.json();
       if (res.ok) {
-        const data = await res.json();
         toast.success(data.message);
         onModifyUser(data.writeHostname);
       } else {
-        toast.error(`修改用户失败：${res.text()}`);
+        toast.error(`修改用户失败：${data.message}`);
       }
     } catch (err) {
       console.error(err);
@@ -59,12 +59,12 @@ export default function DataModify({ userdata, onModifyUser }: { userdata?: Test
           user: selectedUser,
         }),
       });
+      const data = await res.json();
       if (res.ok) {
-        const data = await res.json();
         toast.success(data.message);
         onModifyUser(data.writeHostname);
       } else {
-        toast.error(`添加用户失败：${res.text()}`);
+        toast.error(`添加用户失败：${data.message}`);
       }
     } catch (err) {
       console.error(err);

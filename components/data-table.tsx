@@ -29,7 +29,7 @@ export default function DataTable({ data, onDelUser }: { data?: DatabaseTestData
         toast.success(data.message);
         onDelUser(data.writeHostname);
       } else {
-        toast.error(`${(await res.json()).message}`);
+        toast.error(`删除用户失败：${(await res.json()).message}`);
       }
     } catch (err) {
       console.error(`删除用户失败：${err}`);

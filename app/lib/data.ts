@@ -3,6 +3,7 @@ import { DatabaseTestData, SystemDetail, TestUser } from "@/app/definition/data"
 import { RowDataPacket } from "mysql2";
 import mysql from "mysql2/promise";
 import { NextResponse } from "next/server";
+import { serverException } from "./exceptions";
 
 export async function getSystemDetail() {
   const hostname = os.hostname();
@@ -41,13 +42,8 @@ export async function queryUserData(conn: mysql.Connection) {
       writeHostname: "None",
     });
   } catch (e) {
-    console.error(e);
-    return NextResponse.json(
-      {
-        message: `请求数据库失败：${e}`,
-      },
-      { status: 500 }
-    );
+    console.error(`获取用户数据失败：${e}`);
+    return serverException();
   }
 }
 
@@ -89,12 +85,7 @@ export async function modifyUser(conn: mysql.Connection, user: TestUser) {
     });
   } catch (err) {
     console.error(`修改用户失败：${err}`);
-    return NextResponse.json(
-      {
-        message: `修改用户失败：${err}`,
-      },
-      { status: 500 }
-    );
+    return serverException();
   }
 }
 
@@ -129,12 +120,7 @@ export async function adduser(conn: mysql.Connection, user: TestUser) {
     }
   } catch (err) {
     console.error(`添加用户失败：${err}`);
-    return NextResponse.json(
-      {
-        message: `添加用户失败：${err}`,
-      },
-      { status: 500 }
-    );
+    return serverException();
   }
 
   try {
@@ -151,12 +137,7 @@ export async function adduser(conn: mysql.Connection, user: TestUser) {
     });
   } catch (err) {
     console.error(`添加用户失败：${err}`);
-    return NextResponse.json(
-      {
-        message: `添加用户失败：${err}`,
-      },
-      { status: 500 }
-    );
+    return serverException();
   }
 }
 
@@ -174,12 +155,7 @@ export async function delUser(conn: mysql.Connection, id: number) {
     }
   } catch (err) {
     console.error(`删除用户失败：${err}`);
-    return NextResponse.json(
-      {
-        message: `删除用户失败：${err}`,
-      },
-      { status: 500 }
-    );
+    return serverException();
   }
 
   try {
@@ -196,11 +172,6 @@ export async function delUser(conn: mysql.Connection, id: number) {
     });
   } catch (err) {
     console.error(`删除用户失败：${err}`);
-    return NextResponse.json(
-      {
-        message: `删除用户失败：${err}`,
-      },
-      { status: 500 }
-    );
+    return serverException();
   }
 }
