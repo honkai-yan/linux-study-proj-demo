@@ -19,10 +19,6 @@ export default function DatabaseTest() {
     fetchData();
   }, []);
 
-  async function changeWriteHostname(name: string) {
-    fetchData(name);
-  }
-
   async function fetchData(newWriteHostname?: string) {
     try {
       const res = await fetch("/api", {
@@ -32,7 +28,7 @@ export default function DatabaseTest() {
       const _data = await res.json();
       if (res.ok) {
         setData({
-          ...(_data as DatabaseTestData),
+          ..._data,
           writeHostname: newWriteHostname ?? data.writeHostname,
         });
       } else {

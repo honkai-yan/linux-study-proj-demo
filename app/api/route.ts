@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import mysql from "mysql2/promise";
 import { ConnectionOptions } from "mysql2";
-import { queryUserData, modifyUser, adduser, delUser } from "../lib/data";
+import { queryUserData, modifyUser, addUser, delUser } from "../lib/data";
 import { TestUser } from "../definition/data";
 
 const access: ConnectionOptions = {
@@ -11,10 +11,19 @@ const access: ConnectionOptions = {
   password: process.env.MYSQL_PASS,
   database: "test_db",
   multipleStatements: true,
+  enableKeepAlive: true,
+  keepAliveInitialDelay: 10000,
 };
 
-export async function POST(req: NextRequest) {
+if (process.env.APP_MODE === "development") {
+  console.info("应用模式：开发模式");
+} else {
+  console.info("应用模式：生产模式");
+}
+
+export async function POST(req: NextRequest): Promise<NextResponse> {
   let conn: mysql.Connection | null = null;
+  let response: NextResponse | null = null;
   try {
     conn = await mysql.createConnection(access);
     conn.on("error", () => {
@@ -25,21 +34,21 @@ export async function POST(req: NextRequest) {
     const reqType = body.reqType;
     // 获取用户数据
     if (!reqType) {
-      return queryUserData(conn);
+      response = await queryUserData(conn);
     }
     // 修改用户
     else if (reqType === "modify") {
       const user = body.user as TestUser;
-      return modifyUser(conn, user);
+      response = await modifyUser(conn, user);
     }
     // 新增用户
     else if (reqType === "add") {
       const user = body.user as TestUser;
-      return adduser(conn, user);
+      response = await addUser(conn, user);
     }
     // 删除用户
     else if (reqType === "del") {
-      return delUser(conn, body.id);
+      response = await delUser(conn, body.id);
     }
   } catch (err) {
     console.error(`服务器错误：${err}`);
@@ -51,5 +60,6 @@ export async function POST(req: NextRequest) {
     );
   } finally {
     await conn?.end();
+    return response as NextResponse;
   }
 }

@@ -3,7 +3,8 @@ import { DatabaseTestData, SystemDetail, TestUser } from "@/app/definition/data"
 import { RowDataPacket } from "mysql2";
 import mysql from "mysql2/promise";
 import { NextResponse } from "next/server";
-import { serverException } from "./exceptions";
+import { duplicateUserException, noSpecificUserException, serverException } from "./exceptions";
+import { validateUserdata } from "./utils";
 
 export async function getSystemDetail() {
   const hostname = os.hostname();
@@ -35,7 +36,7 @@ export async function queryUserData(conn: mysql.Connection) {
       commit;
     `;
   try {
-    const data = (await conn.query<RowDataPacket[][]>(sql))[0];
+    const [data] = await conn.query<RowDataPacket[][]>(sql);
     return NextResponse.json<DatabaseTestData>({
       hostname: data[1][0]["@@hostname"],
       userdata: data[2] as any,
@@ -49,77 +50,70 @@ export async function queryUserData(conn: mysql.Connection) {
 
 export async function modifyUser(conn: mysql.Connection, user: TestUser) {
   const { id, username, age } = user;
-  if (username.length === 0) {
-    return NextResponse.json(
-      {
-        message: "用户名不能为空！",
-      },
-      { status: 400 }
-    );
-  } else if (username.length > 255) {
-    return NextResponse.json(
-      {
-        message: "用户名长度不能超过255位！",
-      },
-      { status: 400 }
-    );
-  } else if (age < 1 || age > 255) {
-    return NextResponse.json(
-      {
-        message: "年龄范围为 0～255！",
-      },
-      { status: 400 }
-    );
+  const validateResult = validateUserdata(user);
+  if (validateResult !== true) {
+    return validateResult as NextResponse;
   }
-  const sql = `
+
+  try {
+    const sql = `
+      select username from test_tb where id=?;
+    `;
+    const [data] = await conn.query<RowDataPacket[]>(sql, [id]);
+    if (data.length === 0) {
+      return noSpecificUserException();
+    }
+  } catch (err) {
+    console.error(`修改用户失败，在校验用户时：${err}`);
+    return serverException();
+  }
+
+  try {
+    const sql = `
+      select username from test_tb where username=?;
+    `;
+    const [data] = await conn.query<RowDataPacket[]>(sql, [username]);
+    if (data.length > 0) {
+      return duplicateUserException();
+    }
+  } catch (err) {
+    console.error(`修改用户失败，在校验用户时：${err}`);
+    return serverException();
+  }
+
+  try {
+    const sql = `
     start transaction;
     select @@hostname;
-    update test_tb set username='${user.username}',age=${user.age} where id=${id};
+    update test_tb set username=?,age=? where id=?;
     commit;
   `;
-  try {
-    const data = (await conn.query<RowDataPacket[][]>(sql))[0];
+    const [data] = await conn.query<RowDataPacket[][]>(sql, [username, age, id]);
     return NextResponse.json({
       message: "修改用户成功",
       writeHostname: data[1][0]["@@hostname"],
     });
   } catch (err) {
-    console.error(`修改用户失败：${err}`);
+    console.error(`修改用户失败，在修改用户时：${err}`);
     return serverException();
   }
 }
 
-export async function adduser(conn: mysql.Connection, user: TestUser) {
+export async function addUser(conn: mysql.Connection, user: TestUser) {
   const { username, age } = user;
-  if (username.length > 255) {
-    return NextResponse.json(
-      {
-        message: "用户名长度不能超过255位！",
-      },
-      { status: 400 }
-    );
-  } else if (age < 1 || age > 255) {
-    return NextResponse.json(
-      {
-        message: "年龄范围为 0～255！",
-      },
-      { status: 400 }
-    );
+  const validateResult = validateUserdata(user);
+  if (validateResult !== true) {
+    return validateResult as NextResponse;
   }
 
   try {
-    const sql = `select * from test_tb where username='${username}';`;
-    const data = (await conn.query<RowDataPacket[]>(sql))[0];
+    const sql = `select * from test_tb where username=?;`;
+    const [data] = await conn.query<RowDataPacket[]>(sql, [username]);
     if (data.length > 0) {
-      return NextResponse.json(
-        {
-          message: "用户已存在",
-        },
-        { status: 400 }
-      );
+      return duplicateUserException();
     }
   } catch (err) {
-    console.error(`添加用户失败：${err}`);
+    console.error(`添加用户失败，在校验用户时：${err}`);
     return serverException();
   }
 
@@ -127,34 +121,29 @@ export async function adduser(conn: mysql.Connection, user: TestUser) {
     const sql = `
       start transaction;
       select @@hostname;
-      insert into test_tb (username, age) value ('${username}', ${age});
+      insert into test_tb (username, age) value (?, ?);
       commit;
     `;
-    const data = (await conn.query<RowDataPacket[][]>(sql))[0];
+    const [data] = await conn.query<RowDataPacket[][]>(sql, [username, age]);
     return NextResponse.json({
       message: "添加用户成功",
       writeHostname: data[1][0]["@@hostname"],
     });
   } catch (err) {
-    console.error(`添加用户失败：${err}`);
+    console.error(`添加用户失败，在添加用户时：${err}`);
     return serverException();
   }
 }
 
 export async function delUser(conn: mysql.Connection, id: number) {
   try {
-    const sql = `select * from test_tb where id=${id};`;
-    const data = (await conn.query<RowDataPacket[]>(sql))[0];
+    const sql = `select * from test_tb where id=?;`;
+    const [data] = await conn.query<RowDataPacket[]>(sql, [id]);
     if (data.length <= 0) {
-      return NextResponse.json(
-        {
-          message: "用户不存在",
-        },
-        { status: 400 }
-      );
+      return noSpecificUserException();
     }
   } catch (err) {
-    console.error(`删除用户失败：${err}`);
+    console.error(`删除用户失败，在校验用户时：${err}`);
     return serverException();
   }
 
@@ -162,16 +151,16 @@ export async function delUser(conn: mysql.Connection, id: number) {
     const sql = `
       start transaction;
       select @@hostname;
-      delete from test_tb where id=${id};
+      delete from test_tb where id=?;
       commit;
     `;
-    const data = (await conn.query<RowDataPacket[][]>(sql))[0];
+    const [data] = await conn.query<RowDataPacket[][]>(sql, [id]);
     return NextResponse.json({
       message: "删除用户成功",
       writeHostname: data[1][0]["@@hostname"],
     });
   } catch (err) {
-    console.error(`删除用户失败：${err}`);
+    console.error(`删除用户失败，在删除用户时：${err}`);
     return serverException();
   }
 }

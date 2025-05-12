@@ -2,7 +2,7 @@ import { TestUser } from "@/app/definition/data";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Button } from "./ui/button";
 import { Toaster, toast } from "sonner";
 
@@ -13,9 +13,14 @@ const initialUser = {
 };
 
 export default function DataModify({ userdata, onModifyUser }: { userdata?: TestUser[]; onModifyUser: Function }) {
+  const comboSelectedName = useRef("");
   const [selectedUser, setSelectUser] = useState<TestUser>(initialUser);
 
   async function handleModifyUser() {
+    if (comboSelectedName.current === "") {
+      toast.error("请选择一个用户");
+      return;
+    }
     try {
       const res = await fetch("/api", {
         method: "POST",
@@ -26,6 +31,7 @@ export default function DataModify({ userdata, onModifyUser }: { userdata?: Test
       });
       const data = await res.json();
       if (res.ok) {
+        comboSelectedName.current = selectedUser.username;
         toast.success(data.message);
         onModifyUser(data.writeHostname);
       } else {
@@ -77,9 +83,12 @@ export default function DataModify({ userdata, onModifyUser }: { userdata?: Test
       <Toaster position="top-center" richColors />
       <Select
         onValueChange={(val) => {
-          const user = userdata?.find((item) => item.username === val);
+          const _val = val.trimStart().trimEnd();
+          const user = userdata?.find((item) => item.username === _val);
+          comboSelectedName.current = _val;
           setSelectUser(user ?? initialUser);
         }}
+        value={comboSelectedName.current}
       >
         <SelectTrigger>
           <SelectValue placeholder="选择一个user" />
@@ -112,6 +121,8 @@ export default function DataModify({ userdata, onModifyUser }: { userdata?: Test
         <Label htmlFor="age">年龄</Label>
         <Input
           type="number"
+          min={0}
+          max={255}
           onChange={(e) => {
             setSelectUser({
               ...(selectedUser as TestUser),
